@@ -99,4 +99,10 @@ module.exports = {
     }),
   ],
   devtool: isDev ? 'source-map' : false,
+  devServer: {
+    // contentBase: path.resolve(__dirname, 'dist'),
+    port: 4200,
+    hot: true,
+    open: true,
+  },
 };
