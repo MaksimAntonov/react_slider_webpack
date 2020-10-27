@@ -3,7 +3,7 @@ import React from 'react';
 const ReactSliderNavigation = ({
   slidesIds, slidesPerView, transitionValue, onClickFn,
 }) => {
-  if (!Array.isArray(slidesIds)) return null;
+  if (!Array.isArray(slidesIds) || !slidesIds.length) return null;
 
   const navigationList = slidesIds.map((item, idx) => {
     const keyId = idx + 1;

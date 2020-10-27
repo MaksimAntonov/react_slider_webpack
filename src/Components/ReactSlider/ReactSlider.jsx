@@ -135,7 +135,7 @@ const ReactSlider = ({
   const navigationItemsIds = [];
   const slidesList = preparedData.map((item, idx) => {
     const idxKey = idx + 1;
-    if (sliderOptions.slideNavigation) {
+    if (slideNavigation) {
       let indexForNavigation;
       if (sliderOptions.carouselMode) {
         if (idx !== 0 && idx !== preparedData.length - 1) {
@@ -179,18 +179,12 @@ const ReactSlider = ({
       >
         {slidesList}
       </div>
-      {
-        (slideNavigation)
-          ? (
-            <ReactSliderNavigation
-              slidesIds={navigationItemsIds}
-              transitionValue={transitionValue}
-              slidesPerView={slidesPerView}
-              callbackFn={moveToSlide}
-            />
-          )
-          : null
-      }
+      <ReactSliderNavigation
+        slidesIds={navigationItemsIds}
+        transitionValue={transitionValue}
+        slidesPerView={slidesPerView}
+        onClickFn={moveToSlide}
+      />
       <button
         type="button"
         className="react-slider__buttons react-slider__buttons-right"
