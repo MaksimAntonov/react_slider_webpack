@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactSliderItem from './ReactSliderItem';
 import ReactSliderNavigation from './ReactSliderNavigation';
 import './ReactSlider.scss';
@@ -30,22 +30,33 @@ const ReactSlider = ({
   const [slideNavigation] = useState(sliderOptions.slideNavigation);
   const [slidesPerView] = useState(sliderOptions.slidesPerView);
   const [transitionAnimation, setTransitionAnimation] = useState(null);
-  const [transitionValue, setTransitionValue] = useState(
+  const transitionBasedValue = useRef(null);
+  const [transitionState, setTransitionState] = useState(
     sliderOptions.carouselMode ? (parseFloat(-100 / slidesPerView)) : 0,
   );
   const [autoPlayReverse, setAutoPlayReverse] = useState(false);
-  const [touchIsEnded, setTouchIsEnded] = useState(true);
-  const [touchStartPos, setTouchStartPos] = useState(null);
+  const [swipeIsEnded, setSwipeIsEnded] = useState(true);
+  const [swipeStartPos, setSwipeStartPos] = useState(null);
 
   const [preparedData] = useState((children)
     ? prepareData(children, sliderOptions.carouselMode)
     : prepareData(slidesData, sliderOptions.carouselMode));
+  const maxLTransition = 0;
+  // eslint-disable-next-line max-len
+  const maxRTransition = -((preparedData.length - 1 / slidesPerView) * (parseFloat(100 / slidesPerView)));
 
   // Functions for Slider
+  const pxToPercent = (value) => Math.round((value / document.body.clientWidth) * 100);
+
   const moveSlidesToLeft = (pauseAction = false) => {
     setTransitionAnimation(null);
-    if (transitionValue < 0) {
-      setTransitionValue(transitionValue + (parseFloat(100 / slidesPerView)));
+    const transition = (transitionBasedValue.current !== null)
+      ? transitionBasedValue.current
+      : transitionState;
+    if (transition < maxLTransition) {
+      setTransitionState(transition + (parseFloat(100 / slidesPerView)));
+    } else {
+      setTransitionState(0); // transition);
     }
 
     if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
@@ -53,11 +64,13 @@ const ReactSlider = ({
 
   const moveSlidesToRight = (pauseAction = false) => {
     setTransitionAnimation(null);
-    const sliderLength = preparedData.length - 1;
-    const maxTransition = (sliderLength / slidesPerView) * (parseFloat(100 / slidesPerView));
-    if (
-      Math.abs(transitionValue) < maxTransition) {
-      setTransitionValue(transitionValue - (parseFloat(100 / slidesPerView)));
+    const transition = (transitionBasedValue.current !== null)
+      ? transitionBasedValue.current
+      : transitionState;
+    if (transition > maxRTransition) {
+      setTransitionState(transition - (parseFloat(100 / slidesPerView)));
+    } else {
+      setTransitionState(transition);
     }
 
     if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
@@ -66,23 +79,25 @@ const ReactSlider = ({
   const moveToSlide = (slidePosition) => {
     setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
     setTransitionAnimation(null);
-    setTransitionValue(slidePosition);
+    setTransitionState(slidePosition);
   };
 
   const handlerTransitionEnd = () => {
-    if (transitionValue === 0) {
+    if (transitionState === 0) {
       if (sliderOptions.carouselMode) {
         setTransitionAnimation('none');
-        setTransitionValue((preparedData.length - 2) * (parseFloat(-100 / slidesPerView)));
+        setTransitionState((preparedData.length - 2) * (parseFloat(-100 / slidesPerView)));
       } else {
         setAutoPlayReverse(false);
       }
     }
 
-    if (transitionValue === (preparedData.length - 1) * (parseFloat(-100 / slidesPerView))) {
+    if (
+      transitionState === (preparedData.length - 1) * (parseFloat(-100 / slidesPerView))
+    ) {
       if (sliderOptions.carouselMode) {
         setTransitionAnimation('none');
-        setTransitionValue(parseFloat(-100 / slidesPerView));
+        setTransitionState(parseFloat(-100 / slidesPerView));
       } else {
         setAutoPlayReverse(true);
       }
@@ -101,28 +116,64 @@ const ReactSlider = ({
     }
   };
 
-  const handleTouchStart = (event) => {
+  const handleSwipeStart = (event) => {
     setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
-    if (touchIsEnded) {
-      setTouchIsEnded(false);
-      setTouchStartPos(event.changedTouches[0].screenX);
+    if (swipeIsEnded) {
+      transitionBasedValue.current = Math.round(transitionState);
+      setSwipeIsEnded(false);
+      setSwipeStartPos((event.type === 'touchstart') ? event.changedTouches[0].screenX : event.screenX);
     }
     return false;
   };
-  const handleTouchEnd = (event) => {
-    if (touchStartPos) {
-      const touchEnd = event.changedTouches[0].screenX;
-      const diff = Math.max(touchStartPos, touchEnd) - Math.min(touchStartPos, touchEnd);
-      if (diff < 100) return false;
 
-      setTouchIsEnded(true);
-      if (touchEnd > touchStartPos) {
-        moveSlidesToLeft();
-      } else {
-        moveSlidesToRight();
+  const handleSwipeEnd = () => {
+    if (swipeStartPos) {
+      if (transitionBasedValue.current <= 0) {
+        setTransitionState(transitionBasedValue.current);
       }
-      setTouchStartPos(null);
+      setSwipeIsEnded(true);
+      setSwipeStartPos(null);
+      transitionBasedValue.current = null;
     }
+
+    return false;
+  };
+
+  const handleSwipeMove = (event) => {
+    if (event.type === 'mousemove' && event.buttons !== 1) {
+      return false;
+    }
+    if (swipeStartPos) {
+      const swipeMove = (event.type === 'touchmove') ? event.changedTouches[0].screenX : event.screenX;
+      const diff = Math.round(
+        Math.max(swipeStartPos, swipeMove) - Math.min(swipeStartPos, swipeMove),
+      );
+
+      let transitionValue = 0;
+      if (swipeMove > swipeStartPos) {
+        transitionValue = transitionBasedValue.current + pxToPercent(diff);
+      } else {
+        transitionValue = transitionBasedValue.current - pxToPercent(diff);
+      }
+
+      if ((transitionValue > maxRTransition) && (transitionValue < maxLTransition)) {
+        setTransitionState(transitionValue);
+      }
+
+      const minSwipeValue = Math.round(document.body.clientWidth / 4);
+
+      if (diff > minSwipeValue) {
+        setSwipeIsEnded(true);
+        if (swipeMove > swipeStartPos) {
+          moveSlidesToLeft();
+        } else {
+          moveSlidesToRight();
+        }
+        setSwipeStartPos(null);
+        transitionBasedValue.current = null;
+      }
+    }
+
     return false;
   };
 
@@ -168,20 +219,26 @@ const ReactSlider = ({
         &lt;
       </button>
       <div
+        role="presentation"
         className="react-slider__slides-container"
         style={{
           transition: transitionAnimation,
-          transform: `translateX(${transitionValue}%)`,
+          transform: `translateX(${transitionState}%)`,
         }}
         onTransitionEnd={handlerTransitionEnd}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={handleSwipeStart}
+        onTouchEnd={handleSwipeEnd}
+        onTouchMove={handleSwipeMove}
+        onMouseDown={handleSwipeStart}
+        onMouseUp={handleSwipeEnd}
+        onMouseMove={handleSwipeMove}
+        onDragStart={(event) => event.preventDefault()}
       >
         {slidesList}
       </div>
       <ReactSliderNavigation
         slidesIds={navigationItemsIds}
-        transitionValue={transitionValue}
+        transitionValue={transitionState}
         slidesPerView={slidesPerView}
         onClickFn={moveToSlide}
       />
