@@ -20,7 +20,7 @@ const prepareData = (data, carouselMode) => {
 };
 
 const ReactSlider = ({
-  slidesData, options, children, id, className,
+  options, children, id, className,
 }) => {
   const [sliderOptions, setSliderOptions] = useState({
     ...defaultOptions,
@@ -38,14 +38,12 @@ const ReactSlider = ({
   const [swipeIsEnded, setSwipeIsEnded] = useState(true);
   const [swipeStartPos, setSwipeStartPos] = useState(null);
 
-  const [preparedData] = useState((children)
-    ? prepareData(children, sliderOptions.carouselMode)
-    : prepareData(slidesData, sliderOptions.carouselMode));
-  const maxLTransition = 0;
-  // eslint-disable-next-line max-len
-  const maxRTransition = -((preparedData.length - 1 / slidesPerView) * (parseFloat(100 / slidesPerView)));
+  const [preparedData] = useState(prepareData(children, sliderOptions.carouselMode));
 
-  // Functions for Slider
+  const dataLength = preparedData.length;
+  const maxLTransition = 0;
+  const maxRTransition = -(((dataLength - 1) / slidesPerView) * parseFloat(100 / slidesPerView));
+
   const pxToPercent = (value) => Math.round((value / document.body.clientWidth) * 100);
 
   const moveSlidesToLeft = (pauseAction = false) => {
@@ -55,8 +53,6 @@ const ReactSlider = ({
       : transitionState;
     if (transition < maxLTransition) {
       setTransitionState(transition + (parseFloat(100 / slidesPerView)));
-    } else {
-      setTransitionState(0); // transition);
     }
 
     if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
@@ -67,10 +63,9 @@ const ReactSlider = ({
     const transition = (transitionBasedValue.current !== null)
       ? transitionBasedValue.current
       : transitionState;
+
     if (transition > maxRTransition) {
       setTransitionState(transition - (parseFloat(100 / slidesPerView)));
-    } else {
-      setTransitionState(transition);
     }
 
     if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
@@ -86,14 +81,14 @@ const ReactSlider = ({
     if (transitionState === 0) {
       if (sliderOptions.carouselMode) {
         setTransitionAnimation('none');
-        setTransitionState((preparedData.length - 2) * (parseFloat(-100 / slidesPerView)));
+        setTransitionState((dataLength - 2) * (parseFloat(-100 / slidesPerView)));
       } else {
         setAutoPlayReverse(false);
       }
     }
 
     if (
-      transitionState === (preparedData.length - 1) * (parseFloat(-100 / slidesPerView))
+      transitionState === (dataLength - 1) * (parseFloat(-100 / slidesPerView))
     ) {
       if (sliderOptions.carouselMode) {
         setTransitionAnimation('none');
@@ -144,6 +139,7 @@ const ReactSlider = ({
       return false;
     }
     if (swipeStartPos) {
+      setTransitionAnimation(null);
       const swipeMove = (event.type === 'touchmove') ? event.changedTouches[0].screenX : event.screenX;
       const diff = Math.round(
         Math.max(swipeStartPos, swipeMove) - Math.min(swipeStartPos, swipeMove),
@@ -151,9 +147,9 @@ const ReactSlider = ({
 
       let transitionValue = 0;
       if (swipeMove > swipeStartPos) {
-        transitionValue = transitionBasedValue.current + pxToPercent(diff);
+        transitionValue = transitionBasedValue.current + (pxToPercent(diff) * 5);
       } else {
-        transitionValue = transitionBasedValue.current - pxToPercent(diff);
+        transitionValue = transitionBasedValue.current - (pxToPercent(diff) * 5);
       }
 
       if ((transitionValue > maxRTransition) && (transitionValue < maxLTransition)) {
@@ -165,9 +161,9 @@ const ReactSlider = ({
       if (diff > minSwipeValue) {
         setSwipeIsEnded(true);
         if (swipeMove > swipeStartPos) {
-          moveSlidesToLeft();
+          moveSlidesToLeft(true);
         } else {
-          moveSlidesToRight();
+          moveSlidesToRight(true);
         }
         setSwipeStartPos(null);
         transitionBasedValue.current = null;
@@ -189,7 +185,7 @@ const ReactSlider = ({
     if (slideNavigation) {
       let indexForNavigation;
       if (sliderOptions.carouselMode) {
-        if (idx !== 0 && idx !== preparedData.length - 1) {
+        if (idx !== 0 && idx !== dataLength - 1) {
           indexForNavigation = idx;
         }
       } else indexForNavigation = idx;
