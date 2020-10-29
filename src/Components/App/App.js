@@ -2,45 +2,6 @@ import React from 'react';
 import ReactSlider from '../ReactSlider/ReactSlider';
 import './App.scss';
 
-const sliderData = [
-  {
-    id: 1,
-    title: 'slide 1',
-    image: {
-      src: 'images/iceland-1979445_1920.jpg',
-      alt: 'White fox by David Mark',
-    },
-    description: '',
-  },
-  {
-    id: 2,
-    title: 'slide 2',
-    image: {
-      src: 'images/yellowstone-national-park-1581879_1920.jpg',
-      alt: 'Yellowstone national park by David Mark',
-    },
-    description: 'Best park in USA',
-  },
-  {
-    id: 3,
-    title: 'slide 3',
-    image: {
-      src: 'images/sunset-1373171_1920.jpg',
-      alt: 'Cindy Lever',
-    },
-    description: '',
-  },
-  {
-    id: 4,
-    title: 'slide 4',
-    image: {
-      src: 'images/road-1072823_1920.jpg',
-      alt: 'Valiphotos',
-    },
-    description: '',
-  },
-];
-
 function App() {
   return (
     <>
@@ -110,26 +71,6 @@ function App() {
               </tr>
             </tbody>
           </table>
-          <p className="description">
-            {`
-              Array of data objects have a following structure:
-            `}
-          </p>
-          <pre className="demos__code">
-            {`
-[
-  {
-    title: ‘string’,
-    image: {
-      src: ‘string’,
-      alt: ‘string’,
-    },
-    description: ‘string’,
-  },
-  ...
-]
-            `}
-          </pre>
         </section>
         <section id="demos">
           <div className="demos">
@@ -138,13 +79,32 @@ function App() {
               <p className="demos__label">Usage:</p>
               <pre className="demos__code">
                 {`
-<ReactSlider slidesData={sliderData} />
+<ReactSlider >
+  {elements for slider}
+</ReactSlider>
                 `}
               </pre>
               <ReactSlider
                 className="demos__slider"
-                slidesData={sliderData}
-              />
+              >
+                <div className="slide-block">
+                  <img src="images/iceland-1979445_1920.jpg" alt="White fox by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 1</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/yellowstone-national-park-1581879_1920.jpg" alt="Yellowstone national park by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 2</h2>
+                  <p className="slide-block__description">Best park in USA</p>
+                </div>
+                <div className="slide-block">
+                  <img src="images/sunset-1373171_1920.jpg" alt="Cindy Lever" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 3</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/road-1072823_1920.jpg" alt="Valiphotos" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 4</h2>
+                </div>
+              </ReactSlider>
             </div>
           </div>
           <hr />
@@ -154,14 +114,33 @@ function App() {
               <p className="demos__label">Usage:</p>
               <pre className="demos__code">
                 {`
-<ReactSlider slidesData={sliderData} options={{ slidesPerView: 2 }} />
+<ReactSlider options={{ slidesPerView: 2 }} >
+  {elements for slider}
+</ReactSlider>
                 `}
               </pre>
               <ReactSlider
                 className="demos__slider"
-                slidesData={sliderData}
                 options={{ slidesPerView: 2 }}
-              />
+              >
+                <div className="slide-block">
+                  <img src="images/iceland-1979445_1920.jpg" alt="White fox by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 1</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/yellowstone-national-park-1581879_1920.jpg" alt="Yellowstone national park by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 2</h2>
+                  <p className="slide-block__description">Best park in USA</p>
+                </div>
+                <div className="slide-block">
+                  <img src="images/sunset-1373171_1920.jpg" alt="Cindy Lever" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 3</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/road-1072823_1920.jpg" alt="Valiphotos" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 4</h2>
+                </div>
+              </ReactSlider>
             </div>
           </div>
           <hr />
@@ -171,14 +150,33 @@ function App() {
               <p className="demos__label">Usage:</p>
               <pre className="demos__code">
                 {`
-<ReactSlider slidesData={sliderData} options={{ autoPlay: true, carouselMode: true }} />
+<ReactSlider options={{ autoPlay: true, carouselMode: true }} >
+  {elements for slider}
+</ReactSlider>
                 `}
               </pre>
               <ReactSlider
                 className="demos__slider"
-                slidesData={sliderData}
                 options={{ autoPlay: true, carouselMode: true }}
-              />
+              >
+                <div className="slide-block">
+                  <img src="images/iceland-1979445_1920.jpg" alt="White fox by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 1</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/yellowstone-national-park-1581879_1920.jpg" alt="Yellowstone national park by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 2</h2>
+                  <p className="slide-block__description">Best park in USA</p>
+                </div>
+                <div className="slide-block">
+                  <img src="images/sunset-1373171_1920.jpg" alt="Cindy Lever" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 3</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/road-1072823_1920.jpg" alt="Valiphotos" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 4</h2>
+                </div>
+              </ReactSlider>
             </div>
           </div>
           <hr />
@@ -188,32 +186,32 @@ function App() {
               <p className="demos__label">Usage:</p>
               <pre className="demos__code">
                 {`
-<ReactSlider slidesData={sliderData} options={{ carouselMode: true, slideNavigation: true }} />
+<ReactSlider options={{ carouselMode: true, slideNavigation: true }} >
+  {elements for slider}
+</ReactSlider>
                 `}
               </pre>
               <ReactSlider
                 className="demos__slider"
-                slidesData={sliderData}
                 options={{ carouselMode: true, slideNavigation: true }}
-              />
-            </div>
-          </div>
-          <hr />
-          <div className="demos">
-            <h2 className="demos__title">5. ReactSlider using existing element</h2>
-            <div>
-              <p className="demos__label">Usage:</p>
-              <pre className="demos__code">
-                {`
-<ReactSlider slidesData={sliderData} options={{ slideNavigation: true }}>
-  <img src="..." />
-  <img src="..." />
-</ReactSlider>
-                `}
-              </pre>
-              <ReactSlider className="demos__slider" slidesData={sliderData} options={{ slideNavigation: true }}>
-                <img className="images" src="images/iceland-1979445_1920.jpg" alt="White fox by David Mark" />
-                <img className="images" src="images/road-1072823_1920.jpg" alt="Valiphotos" />
+              >
+                <div className="slide-block">
+                  <img src="images/iceland-1979445_1920.jpg" alt="White fox by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 1</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/yellowstone-national-park-1581879_1920.jpg" alt="Yellowstone national park by David Mark" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 2</h2>
+                  <p className="slide-block__description">Best park in USA</p>
+                </div>
+                <div className="slide-block">
+                  <img src="images/sunset-1373171_1920.jpg" alt="Cindy Lever" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 3</h2>
+                </div>
+                <div className="slide-block">
+                  <img src="images/road-1072823_1920.jpg" alt="Valiphotos" className="slide-block__image" />
+                  <h2 className="slide-block__title">slide 4</h2>
+                </div>
               </ReactSlider>
             </div>
           </div>
