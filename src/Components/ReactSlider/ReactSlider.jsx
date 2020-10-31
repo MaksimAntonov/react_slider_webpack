@@ -10,6 +10,7 @@ const defaultOptions = {
   slideNavigation: false,
   slidesPerView: 1,
 };
+const swipeSpeadUp = 5;
 
 const prepareData = (data, carouselMode) => {
   if (!Array.isArray(data)) return false;
@@ -18,6 +19,8 @@ const prepareData = (data, carouselMode) => {
     ? [data[data.length - 1], ...data, data[0]]
     : data;
 };
+
+const pxToPercent = (value) => parseFloat((value / document.body.clientWidth) * 100);
 
 const ReactSlider = ({
   options, children, id, className,
@@ -30,72 +33,64 @@ const ReactSlider = ({
   const [slideNavigation] = useState(sliderOptions.slideNavigation);
   const [slidesPerView] = useState(sliderOptions.slidesPerView);
   const [transitionAnimation, setTransitionAnimation] = useState(null);
-  const transitionBasedValue = useRef(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(sliderOptions.carouselMode ? 1 : 0);
+  const deltaXSlides = parseFloat(100 / slidesPerView);
   const [transitionState, setTransitionState] = useState(
-    sliderOptions.carouselMode ? (parseFloat(-100 / slidesPerView)) : 0,
+    sliderOptions.carouselMode ? (-deltaXSlides) : 0,
   );
   const [autoPlayReverse, setAutoPlayReverse] = useState(false);
   const [swipeIsEnded, setSwipeIsEnded] = useState(true);
   const [swipeStartPos, setSwipeStartPos] = useState(null);
-
   const [preparedData] = useState(prepareData(children, sliderOptions.carouselMode));
+  const transitionBasedValue = useRef(null);
+  const autoPlayerTimer = useRef(0);
 
   const dataLength = preparedData.length;
-  const maxLTransition = 0;
-  const maxRTransition = -(((dataLength - 1) / slidesPerView) * parseFloat(100 / slidesPerView));
+  const maxLeftSlide = 0;
+  const maxRightSlide = dataLength - slidesPerView;
 
-  const pxToPercent = (value) => Math.round((value / document.body.clientWidth) * 100);
-
-  const moveSlidesToLeft = (pauseAction = false) => {
+  const moveToSlide = (slideIndex, pauseAction = false) => {
+    if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
     setTransitionAnimation(null);
-    const transition = (transitionBasedValue.current !== null)
-      ? transitionBasedValue.current
-      : transitionState;
-    if (transition < maxLTransition) {
-      setTransitionState(transition + (parseFloat(100 / slidesPerView)));
+
+    if (slideIndex >= maxLeftSlide && slideIndex <= maxRightSlide) {
+      setTransitionState(slideIndex * -deltaXSlides);
+      setCurrentSlideIndex(slideIndex);
+      return false;
     }
 
-    if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
-  };
-
-  const moveSlidesToRight = (pauseAction = false) => {
-    setTransitionAnimation(null);
-    const transition = (transitionBasedValue.current !== null)
-      ? transitionBasedValue.current
-      : transitionState;
-
-    if (transition > maxRTransition) {
-      setTransitionState(transition - (parseFloat(100 / slidesPerView)));
+    if (slideIndex < maxLeftSlide) {
+      setTransitionState(maxLeftSlide * -deltaXSlides);
+      setCurrentSlideIndex(maxLeftSlide);
+      return false;
     }
 
-    if (pauseAction) setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
+    if (slideIndex > maxRightSlide) {
+      setTransitionState(maxRightSlide * -deltaXSlides);
+      setCurrentSlideIndex(maxRightSlide);
+      return false;
+    }
+
+    return false;
   };
 
-  const moveToSlide = (slidePosition) => {
-    setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
-    setTransitionAnimation(null);
-    setTransitionState(slidePosition);
+  const updateCurrentSlide = (slideIndex, reverse) => {
+    if (sliderOptions.carouselMode) {
+      setTransitionAnimation('none');
+      setCurrentSlideIndex(slideIndex);
+      setTransitionState(slideIndex * -deltaXSlides);
+    } else {
+      setAutoPlayReverse(reverse);
+    }
   };
 
   const handlerTransitionEnd = () => {
-    if (transitionState === 0) {
-      if (sliderOptions.carouselMode) {
-        setTransitionAnimation('none');
-        setTransitionState((dataLength - 2) * (parseFloat(-100 / slidesPerView)));
-      } else {
-        setAutoPlayReverse(false);
-      }
+    if (currentSlideIndex === 0) {
+      updateCurrentSlide(dataLength - 2, false);
     }
 
-    if (
-      transitionState === (dataLength - 1) * (parseFloat(-100 / slidesPerView))
-    ) {
-      if (sliderOptions.carouselMode) {
-        setTransitionAnimation('none');
-        setTransitionState(parseFloat(-100 / slidesPerView));
-      } else {
-        setAutoPlayReverse(true);
-      }
+    if (currentSlideIndex === maxRightSlide) {
+      updateCurrentSlide(1, true);
     }
   };
 
@@ -105,16 +100,16 @@ const ReactSlider = ({
     }
 
     if (sliderOptions.carouselMode || !autoPlayReverse) {
-      moveSlidesToRight();
+      moveToSlide(currentSlideIndex + 1);
     } else {
-      moveSlidesToLeft();
+      moveToSlide(currentSlideIndex - 1);
     }
   };
 
   const handleSwipeStart = (event) => {
     setSliderOptions({ ...sliderOptions, autoPlayPaused: true });
     if (swipeIsEnded) {
-      transitionBasedValue.current = Math.round(transitionState);
+      transitionBasedValue.current = transitionState;
       setSwipeIsEnded(false);
       setSwipeStartPos((event.type === 'touchstart') ? event.changedTouches[0].screenX : event.screenX);
     }
@@ -138,32 +133,34 @@ const ReactSlider = ({
     if (event.type === 'mousemove' && event.buttons !== 1) {
       return false;
     }
+
     if (swipeStartPos) {
       setTransitionAnimation(null);
       const swipeMove = (event.type === 'touchmove') ? event.changedTouches[0].screenX : event.screenX;
-      const diff = Math.round(
-        Math.max(swipeStartPos, swipeMove) - Math.min(swipeStartPos, swipeMove),
-      );
+      const diff = Math.max(swipeStartPos, swipeMove) - Math.min(swipeStartPos, swipeMove);
 
       let transitionValue = 0;
       if (swipeMove > swipeStartPos) {
-        transitionValue = transitionBasedValue.current + (pxToPercent(diff) * 5);
+        transitionValue = transitionBasedValue.current + (pxToPercent(diff) * swipeSpeadUp);
       } else {
-        transitionValue = transitionBasedValue.current - (pxToPercent(diff) * 5);
+        transitionValue = transitionBasedValue.current - (pxToPercent(diff) * swipeSpeadUp);
       }
 
-      if ((transitionValue > maxRTransition) && (transitionValue < maxLTransition)) {
+      if (
+        (transitionValue > (maxRightSlide * -deltaXSlides))
+        && (transitionValue < (maxLeftSlide * -deltaXSlides))
+      ) {
         setTransitionState(transitionValue);
       }
 
-      const minSwipeValue = Math.round(document.body.clientWidth / 4);
+      const minSwipeValue = document.body.clientWidth / 4;
 
       if (diff > minSwipeValue) {
         setSwipeIsEnded(true);
         if (swipeMove > swipeStartPos) {
-          moveSlidesToLeft(true);
+          moveToSlide(currentSlideIndex - 1, true);
         } else {
-          moveSlidesToRight(true);
+          moveToSlide(currentSlideIndex + 1, true);
         }
         setSwipeStartPos(null);
         transitionBasedValue.current = null;
@@ -175,7 +172,8 @@ const ReactSlider = ({
 
   useEffect(() => {
     if (sliderOptions.autoPlay) {
-      setTimeout(() => autoSliding(), sliderOptions.autoPlayDelay * 1000);
+      clearTimeout(autoPlayerTimer.current);
+      autoPlayerTimer.current = setTimeout(autoSliding, sliderOptions.autoPlayDelay * 1000);
     }
   });
 
@@ -210,7 +208,7 @@ const ReactSlider = ({
       <button
         type="button"
         className="react-slider__buttons react-slider__buttons-left"
-        onClick={() => moveSlidesToLeft(false)}
+        onClick={() => moveToSlide(currentSlideIndex - 1, true)}
       >
         &lt;
       </button>
@@ -234,14 +232,14 @@ const ReactSlider = ({
       </div>
       <ReactSliderNavigation
         slidesIds={navigationItemsIds}
-        transitionValue={transitionState}
+        currentSlideIndex={currentSlideIndex}
         slidesPerView={slidesPerView}
         onClickFn={moveToSlide}
       />
       <button
         type="button"
         className="react-slider__buttons react-slider__buttons-right"
-        onClick={() => moveSlidesToRight(true)}
+        onClick={() => moveToSlide(currentSlideIndex + 1, true)}
       >
         &gt;
       </button>
