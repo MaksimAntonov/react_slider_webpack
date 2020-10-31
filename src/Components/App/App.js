@@ -11,7 +11,7 @@ function App() {
           <ul className="header__navigation">
             <li className="header__navigation-item"><a className="header__navigation-link" href="#root">Home</a></li>
             <li className="header__navigation-item"><a className="header__navigation-link" href="#demos">Demos</a></li>
-            <li className="header__navigation-item"><a className="header__navigation-link" href="https://github.com/BoL4oNoK/react_slider" title="Go to GitHub page" target="_blank" rel="noopener noreferrer">GitHUB</a></li>
+            <li className="header__navigation-item"><a className="header__navigation-link" href="https://github.com/BoL4oNoK/react_slider_webpack" title="Go to GitHub page" target="_blank" rel="noopener noreferrer">GitHUB</a></li>
           </ul>
         </nav>
       </header>
@@ -19,7 +19,7 @@ function App() {
         <section className="about">
           <p className="description">
             {`
-              Whith this ReactSlider you can make slides based on React Elements or using special data-object with necessary fields, like as image data (src link), title and description.
+              Whith this ReactSlider you can make slides based on React Elements as children props.
             `}
           </p>
         </section>
